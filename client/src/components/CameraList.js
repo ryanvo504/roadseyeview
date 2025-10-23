@@ -1,8 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, forwardRef, useImperativeHandle, useRef } from 'react';
 
-function CameraList({ cameras, onCameraSelect, selectedCamera, showAll }) {
+const CameraList = forwardRef(({ cameras, onCameraSelect, selectedCamera, showAll }, ref) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showList, setShowList] = useState(true);
+  const containerRef = useRef(null);
+
+  useImperativeHandle(ref, () => ({
+    expand: () => setShowList(true),
+    collapse: () => setShowList(false),
+    scrollIntoView: (options) => containerRef.current?.scrollIntoView(options)
+  }));
 
   const filteredCameras = cameras.filter(camera =>
     camera.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -11,7 +18,7 @@ function CameraList({ cameras, onCameraSelect, selectedCamera, showAll }) {
   );
 
   return (
-    <div className="mt-4">
+    <div ref={containerRef} className="mt-4">
       <div className="flex items-center justify-between mb-2">
         <h2 className="text-lg font-semibold text-gray-800">
           {showAll ? 'All Cameras' : 'Cameras Along Route'}
@@ -35,7 +42,7 @@ function CameraList({ cameras, onCameraSelect, selectedCamera, showAll }) {
             className="w-full px-3 py-2 border border-gray-300 rounded-md mb-3 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
           />
 
-          <div className="space-y-2 max-h-96 overflow-y-auto">
+          <div className="space-y-2 max-h-[calc(100vh-300px)] overflow-y-auto">
             {filteredCameras.length === 0 ? (
               <p className="text-gray-500 text-sm text-center py-4">
                 No cameras found
@@ -89,6 +96,6 @@ function CameraList({ cameras, onCameraSelect, selectedCamera, showAll }) {
       )}
     </div>
   );
-}
+});
 
 export default CameraList;

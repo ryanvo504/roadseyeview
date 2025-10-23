@@ -185,30 +185,39 @@ function CameraViewer({ camera, onClose }) {
                 </div>
               )}
               {error && (
-                <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-75">
-                  <div className="text-white text-center p-4 max-w-md">
-                    <svg className="w-16 h-16 mx-auto mb-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <p className="text-lg font-semibold mb-2">Stream Unavailable</p>
-                    <p className="text-sm text-gray-300 mb-4">
-                      This camera's live stream is currently offline or the stream URL has changed.
-                      Traffic camera streams are maintained by CalTrans and may go offline periodically.
-                    </p>
-                    {camera.imageUrl && (
-                      <div className="mt-4">
-                        <p className="text-xs text-gray-400 mb-2">Showing latest still image instead:</p>
-                        <img
-                          src={camera.imageUrl}
-                          alt={camera.name}
-                          className="w-full mx-auto rounded border-2 border-gray-600"
-                          onError={(e) => {
-                            e.target.parentElement.innerHTML = '<p class="text-red-400 text-sm">No image available</p>';
-                          }}
-                        />
+                <div className="absolute inset-0 bg-black">
+                  {camera.imageUrl ? (
+                    <>
+                      <img
+                        src={camera.imageUrl}
+                        alt={camera.name}
+                        className="w-full h-full object-contain"
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                        }}
+                      />
+                      <div className="absolute top-0 left-0 right-0 bg-gradient-to-b from-black/80 to-transparent p-4">
+                        <div className="flex items-center gap-2 text-yellow-400">
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                          </svg>
+                          <p className="text-sm font-semibold">Stream Unavailable - Showing Latest Still Image</p>
+                        </div>
                       </div>
-                    )}
-                  </div>
+                    </>
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="text-white text-center p-4">
+                        <svg className="w-16 h-16 mx-auto mb-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <p className="text-lg font-semibold mb-2">Stream Unavailable</p>
+                        <p className="text-sm text-gray-300">
+                          This camera's live stream is currently offline and no still image is available.
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -259,16 +268,6 @@ function CameraViewer({ camera, onClose }) {
 
           {/* Action Buttons */}
           <div className="mt-4 flex gap-2">
-            {camera.streamUrl && (
-              <a
-                href={camera.streamUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 text-center text-sm"
-              >
-                Open Stream in New Tab
-              </a>
-            )}
             {camera.imageUrl && (
               <a
                 href={camera.imageUrl}

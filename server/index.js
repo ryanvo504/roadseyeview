@@ -9,50 +9,113 @@ const PORT = process.env.PORT || 5001;
 app.use(cors());
 app.use(express.json());
 
-// ArcGIS Camera Data URL
-const CAMERA_API_URL = 'https://services.arcgis.com/UXmFoWC7yDHcDN5Q/arcgis/rest/services/OC_CalTrans_Highway_CCTV/FeatureServer/1/query?where=1%3D1&outFields=*&returnGeometry=true&f=json';
+// CalTrans Camera Data URLs (Districts 1-12)
+const CALTRANS_BASE_URL = 'https://cwwp2.dot.ca.gov/data';
+const DISTRICTS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 
-// Cache for camera data
-let cameraCache = null;
-let cacheTimestamp = null;
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+// Cache for camera data (loaded once at startup)
+let cameraCache = [];
+let cacheLoadedAt = null;
+
+// Fetch all camera data from CalTrans districts
+async function fetchAllCameras() {
+  console.log('Fetching camera data from CalTrans...');
+  const startTime = Date.now();
+
+  try {
+    // Fetch all district JSONs in parallel
+    const districtPromises = DISTRICTS.map(async (districtNum) => {
+      const url = `${CALTRANS_BASE_URL}/d${districtNum}/cctv/cctvStatusD${String(districtNum).padStart(2, '0')}.json`;
+      try {
+        const response = await axios.get(url, { timeout: 10000 });
+        const data = response.data.data || response.data || [];
+        console.log(`✓ District ${districtNum}: ${data.length} cameras`);
+        return data;
+      } catch (error) {
+        console.error(`✗ District ${districtNum} failed:`, error.message);
+        return [];
+      }
+    });
+
+    const districtResults = await Promise.all(districtPromises);
+
+    // Flatten and transform camera data
+    const allCameras = districtResults.flat();
+
+    const transformedCameras = allCameras
+      .map((item, index) => {
+        const camera = item.cctv;
+
+        // Skip cameras without location data
+        if (!camera || !camera.location || !camera.location.latitude || !camera.location.longitude) {
+          return null;
+        }
+
+        return {
+          id: `d${camera.location.district}-${camera.index || index}`,
+          name: camera.location.locationName || 'Unknown Location',
+          nearbyPlace: camera.location.nearbyPlace || '',
+          route: camera.location.route || '',
+          direction: camera.location.direction || '',
+          latitude: parseFloat(camera.location.latitude),
+          longitude: parseFloat(camera.location.longitude),
+          elevation: parseFloat(camera.location.elevation) || 0,
+          streamUrl: camera.imageData?.streamingVideoURL || null,
+          imageUrl: camera.imageData?.static?.currentImageURL || null,
+          inService: camera.inService === 'true' || camera.inService === true,
+          county: camera.location.county || '',
+          district: camera.location.district || '',
+          postmile: camera.location.postmile || '',
+          milepost: camera.location.milepost || ''
+        };
+      })
+      .filter(camera => camera !== null); // Remove invalid entries
+
+    const loadTime = ((Date.now() - startTime) / 1000).toFixed(2);
+    console.log(`✓ Camera data loaded successfully: ${transformedCameras.length} cameras in ${loadTime}s`);
+
+    return transformedCameras;
+  } catch (error) {
+    console.error('Error fetching camera data:', error.message);
+    return [];
+  }
+}
+
+// Load cameras on startup
+async function initializeCameraCache() {
+  cameraCache = await fetchAllCameras();
+  cacheLoadedAt = new Date();
+
+  if (cameraCache.length === 0) {
+    console.warn('⚠ Warning: No camera data loaded. Server will still start but cameras may not be available.');
+  }
+}
 
 // Endpoint to get all cameras
 app.get('/api/cameras', async (req, res) => {
   try {
-    // Check if cache is valid
-    if (cameraCache && cacheTimestamp && (Date.now() - cacheTimestamp < CACHE_DURATION)) {
-      return res.json(cameraCache);
-    }
-
-    // Fetch fresh data
-    const response = await axios.get(CAMERA_API_URL);
-    const cameras = response.data.features.map(feature => ({
-      id: feature.attributes.OBJECTID,
-      name: feature.attributes.locationName,
-      nearbyPlace: feature.attributes.nearbyPlace,
-      route: feature.attributes.route,
-      direction: feature.attributes.direction,
-      latitude: feature.attributes.latitude,
-      longitude: feature.attributes.longitude,
-      elevation: feature.attributes.elevation,
-      streamUrl: feature.attributes.streamingVideoURL,
-      imageUrl: feature.attributes.currentImageURL,
-      inService: feature.attributes.inService,
-      county: feature.attributes.county
-    }));
-
-    // Filter only cameras that are in service
-    const activeCameras = cameras.filter(cam => cam.inService);
-
-    // Update cache
-    cameraCache = activeCameras;
-    cacheTimestamp = Date.now();
-
-    res.json(activeCameras);
+    res.json(cameraCache);
   } catch (error) {
     console.error('Error fetching cameras:', error.message);
     res.status(500).json({ error: 'Failed to fetch camera data' });
+  }
+});
+
+// Manual refresh endpoint
+app.post('/api/refresh-cameras', async (req, res) => {
+  try {
+    console.log('Manual camera refresh requested...');
+    cameraCache = await fetchAllCameras();
+    cacheLoadedAt = new Date();
+
+    res.json({
+      success: true,
+      camerasLoaded: cameraCache.length,
+      loadedAt: cacheLoadedAt
+    });
+  } catch (error) {
+    console.error('Error refreshing cameras:', error.message);
+    res.status(500).json({ error: 'Failed to refresh camera data' });
   }
 });
 
@@ -62,6 +125,7 @@ app.post('/api/route', async (req, res) => {
     const { start, end } = req.body;
 
     if (!start || !end || !start.lat || !start.lng || !end.lat || !end.lng) {
+      console.error('Invalid coordinates:', { start, end });
       return res.status(400).json({ error: 'Invalid start or end coordinates' });
     }
 
@@ -69,10 +133,28 @@ app.post('/api/route', async (req, res) => {
     // Alternative: can also use OSRM (osrm-project.org) which is fully free
     const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${start.lng},${start.lat};${end.lng},${end.lat}?overview=full&geometries=geojson`;
 
-    const response = await axios.get(osrmUrl);
+    console.log('Requesting route:', osrmUrl);
+
+    const response = await axios.get(osrmUrl, {
+      validateStatus: function (status) {
+        return status >= 200 && status < 500; // Don't throw on 4xx errors
+      }
+    });
+
+    if (response.status >= 400) {
+      console.error('OSRM returned error:', response.status, response.data);
+      return res.status(400).json({
+        error: 'Could not find route',
+        details: response.data?.message || 'Routing service error'
+      });
+    }
 
     if (response.data.code !== 'Ok') {
-      return res.status(400).json({ error: 'Could not find route' });
+      console.error('OSRM response code:', response.data.code, response.data);
+      return res.status(400).json({
+        error: 'Could not find route',
+        details: response.data?.message || 'No route found'
+      });
     }
 
     const route = response.data.routes[0];
@@ -83,7 +165,7 @@ app.post('/api/route', async (req, res) => {
       duration: route.duration // in seconds
     });
   } catch (error) {
-    console.error('Error fetching route:', error.message);
+    console.error('Error fetching route:', error.message, error.response?.data);
     res.status(500).json({ error: 'Failed to fetch route' });
   }
 });
@@ -97,34 +179,8 @@ app.post('/api/cameras-along-route', async (req, res) => {
       return res.status(400).json({ error: 'Invalid route coordinates' });
     }
 
-    // Get all cameras
-    let cameras;
-    if (cameraCache && cacheTimestamp && (Date.now() - cacheTimestamp < CACHE_DURATION)) {
-      cameras = cameraCache;
-    } else {
-      const response = await axios.get(CAMERA_API_URL);
-      cameras = response.data.features
-        .filter(f => f.attributes.inService)
-        .map(feature => ({
-          id: feature.attributes.OBJECTID,
-          name: feature.attributes.locationName,
-          nearbyPlace: feature.attributes.nearbyPlace,
-          route: feature.attributes.route,
-          direction: feature.attributes.direction,
-          latitude: feature.attributes.latitude,
-          longitude: feature.attributes.longitude,
-          elevation: feature.attributes.elevation,
-          streamUrl: feature.attributes.streamingVideoURL,
-          imageUrl: feature.attributes.currentImageURL,
-          inService: feature.attributes.inService,
-          county: feature.attributes.county
-        }));
-      cameraCache = cameras;
-      cacheTimestamp = Date.now();
-    }
-
     // Find cameras near the route
-    const camerasNearRoute = cameras.filter(camera => {
+    const camerasNearRoute = cameraCache.filter(camera => {
       return routeCoordinates.some(coord => {
         const distance = getDistanceFromLatLonInMeters(
           camera.latitude,
@@ -244,6 +300,15 @@ app.get('/api/stream-proxy', async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+// Initialize camera cache and start server
+async function startServer() {
+  await initializeCameraCache();
+
+  app.listen(PORT, () => {
+    console.log(`\n✓ Server running on port ${PORT}`);
+    console.log(`✓ Camera cache loaded: ${cameraCache.length} cameras`);
+    console.log(`✓ Last updated: ${cacheLoadedAt}\n`);
+  });
+}
+
+startServer();
