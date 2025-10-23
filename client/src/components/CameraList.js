@@ -1,6 +1,6 @@
 import React, { useState, forwardRef, useImperativeHandle, useRef } from 'react';
 
-const CameraList = forwardRef(({ cameras, onCameraSelect, selectedCamera, showAll }, ref) => {
+const CameraList = forwardRef(({ cameras, onCameraSelect, selectedCamera, showAll, showStreamsOnly, onShowStreamsOnlyChange }, ref) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showList, setShowList] = useState(true);
   const containerRef = useRef(null);
@@ -39,8 +39,23 @@ const CameraList = forwardRef(({ cameras, onCameraSelect, selectedCamera, showAl
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search cameras..."
-            className="w-full px-3 py-2 border border-gray-300 rounded-md mb-3 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md mb-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
           />
+
+          <label className="flex items-center gap-2 mb-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={showStreamsOnly}
+              onChange={(e) => onShowStreamsOnlyChange(e.target.checked)}
+              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
+            />
+            <span className="text-sm text-gray-700">
+              Show video streams only
+              <svg className="w-4 h-4 inline ml-1 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z" />
+              </svg>
+            </span>
+          </label>
 
           <div className="space-y-2 max-h-[calc(100vh-300px)] overflow-y-auto">
             {filteredCameras.length === 0 ? (

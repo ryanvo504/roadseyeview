@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import axios from 'axios';
@@ -70,6 +70,7 @@ function App() {
   const [currentRouteInfo, setCurrentRouteInfo] = useState(null); // Store current route origin/destination
   const [loadedRouteAddresses, setLoadedRouteAddresses] = useState(null); // Store addresses when loading from favorites/recents
   const [loadedLocation, setLoadedLocation] = useState(null); // Store location when loading from favorites/recents
+  const [showStreamsOnly, setShowStreamsOnly] = useState(false); // Filter to show only cameras with video streams
   const favoritesRef = useRef(null);
   const recentsRef = useRef(null);
   const camerasRef = useRef(null);
@@ -103,6 +104,17 @@ function App() {
       console.error('Error fetching cameras:', error);
     }
   };
+
+  // Filter cameras based on showStreamsOnly
+  const filteredCameras = useMemo(() => {
+    if (!showStreamsOnly) return cameras;
+    return cameras.filter(camera => camera.streamUrl !== null);
+  }, [cameras, showStreamsOnly]);
+
+  const filteredRouteCameras = useMemo(() => {
+    if (!showStreamsOnly) return routeCameras;
+    return routeCameras.filter(camera => camera.streamUrl !== null);
+  }, [routeCameras, showStreamsOnly]);
 
   const handleRouteSubmit = async (start, end, originAddress = null, destinationAddress = null) => {
     setLoading(true);
@@ -421,14 +433,14 @@ function App() {
             <button
               onClick={() => expandAndScrollTo(camerasRef, true)}
               className="p-3 hover:bg-blue-50 rounded-lg transition-colors group relative"
-              title={`${(route ? routeCameras : cameras).length} Cameras`}
+              title={`${(route ? filteredRouteCameras : filteredCameras).length} Cameras`}
             >
               <svg className="w-6 h-6 text-gray-600 group-hover:text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
               </svg>
-              {(route ? routeCameras : cameras).length > 0 && (
+              {(route ? filteredRouteCameras : filteredCameras).length > 0 && (
                 <span className="absolute -top-1 -right-1 bg-gray-500 text-white text-xs rounded-full min-w-[20px] h-5 px-1 flex items-center justify-center font-semibold">
-                  {(route ? routeCameras : cameras).length}
+                  {(route ? filteredRouteCameras : filteredCameras).length}
                 </span>
               )}
             </button>
@@ -466,10 +478,12 @@ function App() {
 
             <CameraList
               ref={camerasRef}
-              cameras={route ? routeCameras : cameras}
+              cameras={route ? filteredRouteCameras : filteredCameras}
               onCameraSelect={setSelectedCamera}
               selectedCamera={selectedCamera}
               showAll={!route}
+              showStreamsOnly={showStreamsOnly}
+              onShowStreamsOnlyChange={setShowStreamsOnly}
             />
           </div>
         )}
@@ -563,7 +577,7 @@ function App() {
           )}
 
           {/* Camera markers */}
-          {(route ? routeCameras : cameras).map(camera => (
+          {(route ? filteredRouteCameras : filteredCameras).map(camera => (
             <Marker
               key={camera.id}
               position={[camera.latitude, camera.longitude]}
