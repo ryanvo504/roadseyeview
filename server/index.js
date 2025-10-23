@@ -6,7 +6,24 @@ const app = express();
 const PORT = process.env.PORT || 5001;
 
 // Middleware
-app.use(cors());
+const allowedOrigins = [
+  'https://oc-cams.vercel.app',
+  'http://localhost:3000',
+  'http://localhost:5001'
+];
+
+app.use(cors({
+  origin: function(origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) === -1) {
+      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+      return callback(new Error(msg), false);
+    }
+    return callback(null, true);
+  },
+  credentials: true
+}));
 app.use(express.json());
 
 // CalTrans Camera Data URLs (Districts 1-12)
@@ -90,6 +107,31 @@ async function initializeCameraCache() {
     console.warn('⚠ Warning: No camera data loaded. Server will still start but cameras may not be available.');
   }
 }
+
+// Root endpoint
+app.get('/', (req, res) => {
+  res.json({
+    name: "Road's Eye View API",
+    version: '1.0.0',
+    endpoints: {
+      health: '/health',
+      cameras: '/api/cameras',
+      route: 'POST /api/route',
+      camerasAlongRoute: 'POST /api/cameras-along-route',
+      streamProxy: '/api/stream-proxy?url=',
+      refreshCameras: 'POST /api/refresh-cameras'
+    }
+  });
+});
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'ok',
+    cameras: cameraCache.length,
+    cacheLoadedAt: cacheLoadedAt
+  });
+});
 
 // Endpoint to get all cameras
 app.get('/api/cameras', async (req, res) => {
@@ -280,11 +322,16 @@ app.get('/api/stream-proxy', async (req, res) => {
       let playlist = response.data.toString();
       const baseUrl = url.substring(0, url.lastIndexOf('/') + 1);
 
+      // Get the server URL dynamically (will work for both local and deployed)
+      const protocol = req.protocol;
+      const host = req.get('host');
+      const serverUrl = `${protocol}://${host}`;
+
       // Replace relative URLs with proxied URLs
       playlist = playlist.split('\n').map(line => {
         if (line && !line.startsWith('#') && !line.startsWith('http')) {
           const segmentUrl = baseUrl + line;
-          return `http://localhost:${PORT}/api/stream-proxy?url=${encodeURIComponent(segmentUrl)}`;
+          return `${serverUrl}/api/stream-proxy?url=${encodeURIComponent(segmentUrl)}`;
         }
         return line;
       }).join('\n');
