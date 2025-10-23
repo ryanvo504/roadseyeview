@@ -5,6 +5,9 @@ const axios = require('axios');
 const app = express();
 const PORT = process.env.PORT || 5001;
 
+// Trust proxy (required for Render to get correct protocol)
+app.set('trust proxy', 1);
+
 // Middleware
 const allowedOrigins = [
   'https://oc-cams.vercel.app',
@@ -323,7 +326,8 @@ app.get('/api/stream-proxy', async (req, res) => {
       const baseUrl = url.substring(0, url.lastIndexOf('/') + 1);
 
       // Get the server URL dynamically (will work for both local and deployed)
-      const protocol = req.protocol;
+      // Trust proxy headers for correct protocol detection (Render uses reverse proxy)
+      const protocol = req.get('x-forwarded-proto') || req.protocol;
       const host = req.get('host');
       const serverUrl = `${protocol}://${host}`;
 
