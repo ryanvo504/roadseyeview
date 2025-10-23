@@ -26,7 +26,7 @@ const cameraIcon = new L.Icon({
   popupAnchor: [0, -32]
 });
 
-const API_BASE_URL = 'http://localhost:5001/api';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
 
 function MapController({ route, sidebarCollapsed, searchedLocation }) {
   const map = useMap();
