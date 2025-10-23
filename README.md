@@ -1,16 +1,19 @@
-# Orange County Traffic Cameras Web App
+# Road's Eye View - California Traffic Cameras
 
-A full-stack web application for viewing live traffic camera feeds along your route in Orange County, California.
+A full-stack web application for viewing live traffic camera feeds along your route throughout California.
 
 ## Features
 
-- **Interactive Map**: View all 130+ Orange County traffic cameras on an OpenStreetMap-powered map
+- **Interactive Map**: View 3,266 California traffic cameras from 12 CalTrans districts on an OpenStreetMap-powered map
 - **Route Planning**: Enter origin and destination to get driving directions
+- **Single Location Search**: Search for and view cameras near any specific location
 - **Camera Filtering**: Automatically find cameras along your planned route (within 1km buffer)
 - **Live Video Streams**: Watch HLS video streams from traffic cameras
 - **Camera Thumbnails**: Preview camera feeds with still images
-- **Favorite Routes**: Save frequently used routes for quick access
-- **Responsive UI**: Clean, modern interface built with Tailwind CSS
+- **Favorites**: Save frequently used routes and locations for quick access
+- **Recents**: Automatic history of recently searched routes and locations
+- **Smart Management**: Items saved to favorites are automatically removed from recents to avoid duplicates
+- **Responsive UI**: Clean, modern interface built with Tailwind CSS and branded logo
 
 ## Technology Stack
 
@@ -28,9 +31,9 @@ A full-stack web application for viewing live traffic camera feeds along your ro
 - Axios
 
 ### APIs Used
-- **ArcGIS FeatureServer**: Orange County CalTrans Highway CCTV camera data
+- **ArcGIS FeatureServer**: CalTrans Highway CCTV camera data covering all 12 California districts
 - **OSRM**: Free routing service (OpenStreetMap Routing Machine)
-- **Nominatim**: Free geocoding service for address lookup
+- **Nominatim**: Free geocoding service for address lookup (California-filtered)
 
 ## Setup Instructions
 
@@ -67,7 +70,7 @@ You'll need to run both the backend and frontend servers:
    cd server
    npm run dev
    ```
-   The server will start on `http://localhost:5000`
+   The server will start on `http://localhost:5001`
 
 2. **Start the Frontend (in a new terminal)**
    ```bash
@@ -79,22 +82,36 @@ You'll need to run both the backend and frontend servers:
 ## Usage Guide
 
 ### Viewing All Cameras
-- When you first load the app, all active cameras in Orange County are displayed on the map
+- When you first load the app, all active cameras throughout California are displayed on the map
 - Click any camera marker to see basic info
 - Click "View Camera" to open the full camera viewer with live stream
 
-### Planning a Route
-1. Enter your origin address in the "Origin" field
-2. Enter your destination address in the "Destination" field
-3. Click "Get Route"
-4. The map will display your route in blue
-5. Only cameras along your route (within 1km) will be shown
+### Searching for a Location
+1. Enter an address or location in the search bar
+2. Select from the autocomplete suggestions
+3. The map will center on that location
+4. Only cameras near that location will be shown
+5. Click the star icon to save the location to favorites
 
-### Saving Favorite Routes
-1. After planning a route, click "Save as Favorite"
-2. Enter a name for your route (e.g., "Home to Work")
-3. Click "Save"
-4. Access saved routes from the "Favorite Routes" section
+### Planning a Route
+1. Click the route icon in the search bar
+2. Enter your origin address in the "Origin" field
+3. Enter your destination address in the "Destination" field
+4. Click "Get Route"
+5. The map will display your route in blue
+6. Only cameras along your route (within 1km) will be shown
+7. Click the star icon to save the route to favorites
+
+### Using Favorites and Recents
+- **Favorites**: Save routes or locations for quick access later
+  - Click the star icon after searching a location or planning a route
+  - Give it a name and it will be saved in the Favorites section
+  - Click any favorite to quickly reload it
+- **Recents**: Automatically tracks your recent searches (up to 10)
+  - Every location or route search is automatically added
+  - Click "Show" to expand and see your recent searches
+  - Click any recent to reload it
+  - Items saved to favorites are automatically removed from recents
 
 ### Viewing Camera Feeds
 - Click any camera marker or camera in the list
@@ -106,24 +123,28 @@ You'll need to run both the backend and frontend servers:
 
 ## Camera Data
 
-The app uses CalTrans camera data for Orange County (District 12), which includes:
-- 130+ traffic cameras
-- Coverage of major highways (I-5, SR-91, SR-55, SR-57, etc.)
-- Live HLS video streams (.m3u8 format)
+The app uses CalTrans camera data covering all of California, which includes:
+- 3,266 traffic cameras across 12 CalTrans districts (d1-d12)
+- Statewide coverage of major highways and freeways
+- Live HLS video streams (.m3u8 format) where available
 - Still images updated periodically
 - GPS coordinates and elevation data
+- District coverage spans from San Diego (d11) to the Oregon border (d1)
 
 ## Project Structure
 
 ```
 oc-cams/
 ├── client/                 # React frontend
+│   ├── public/
+│   │   └── logo.png       # Road's Eye View branding logo
 │   ├── src/
 │   │   ├── components/    # React components
 │   │   │   ├── CameraViewer.js    # Video player modal
 │   │   │   ├── CameraList.js      # Camera list with thumbnails
-│   │   │   ├── RouteForm.js       # Route input form
-│   │   │   └── FavoriteRoutes.js  # Saved routes manager
+│   │   │   ├── MapSearch.js       # Location & route search interface
+│   │   │   ├── Favorites.js       # Saved routes & locations manager
+│   │   │   └── Recents.js         # Recent searches tracker
 │   │   ├── App.js         # Main application component
 │   │   ├── index.js       # React entry point
 │   │   └── index.css      # Tailwind CSS
@@ -173,10 +194,10 @@ Returns cameras within the specified buffer distance of the route
 ### Route Not Found
 - Make sure addresses are specific and include city/state
 - Try using landmarks or intersections instead of street addresses
-- Ensure both origin and destination are in or near Orange County
+- Ensure both origin and destination are in California
 
 ### Cameras Not Loading
-- Check that the backend server is running on port 5000
+- Check that the backend server is running on port 5001
 - The camera data is cached for 5 minutes to reduce API calls
 - Check browser console for any CORS or network errors
 
