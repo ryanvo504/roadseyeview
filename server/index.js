@@ -277,7 +277,11 @@ app.get('/api/stream-proxy', async (req, res) => {
     const response = await axios.get(url, {
       responseType: 'arraybuffer',
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Referer': 'https://cwwp2.dot.ca.gov/',
+        'Origin': 'https://cwwp2.dot.ca.gov',
+        'Accept': '*/*',
+        'Accept-Language': 'en-US,en;q=0.9',
         'Cache-Control': 'no-cache, no-store, must-revalidate',
         'Pragma': 'no-cache',
         'Expires': '0'
