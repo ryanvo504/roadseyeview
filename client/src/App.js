@@ -20,10 +20,10 @@ L.Icon.Default.mergeOptions({
 
 // Custom camera icon
 const cameraIcon = new L.Icon({
-  iconUrl: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSIjNGI1NTYzIj48cGF0aCBkPSJNMTcgMTBjLTEuMSAwLTIgLjktMiAydjRjMCAxLjEuOSAyIDIgMmg2YzEuMSAwIDItLjkgMi0ydi00YzAtMS4xLS45LTItMi0yaC02em0wIDZ2LTRoNnY0aC02em0tMi0zYzAtMi43Ni0yLjI0LTUtNS01cy01IDIuMjQtNSA1IDIuMjQgNSA1IDUgNS0yLjI0IDUtNXptLTIgMGMwIDEuNjUtMS4zNSAzLTMgM3MtMy0xLjM1LTMtMyAxLjM1LTMgMy0zIDMgMS4zNSAzIDN6Ii8+PC9zdmc+',
-  iconSize: [32, 32],
-  iconAnchor: [16, 32],
-  popupAnchor: [0, -32]
+  iconUrl: 'data:image/svg+xml;base64,' + btoa(`<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="#3b82f6" stroke="#1e40af" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3" fill="white"/></svg>`),
+  iconSize: [24, 24],
+  iconAnchor: [12, 24],
+  popupAnchor: [0, -24]
 });
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
@@ -511,8 +511,8 @@ function App() {
             searchedLocation={searchedLocation}
           />
           <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution='&copy; <a href="https://stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            url={`https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png`}
           />
 
           {/* Route polyline */}
@@ -520,9 +520,9 @@ function App() {
             <>
               <Polyline
                 positions={route.coordinates}
-                color="blue"
-                weight={4}
-                opacity={0.7}
+                color="#3b82f6"
+                weight={5}
+                opacity={0.9}
               />
 
               {/* Origin marker (green dot) */}
