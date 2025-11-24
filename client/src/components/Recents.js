@@ -32,9 +32,9 @@ const Recents = forwardRef(({ recents, onLoad, onDelete, onClearAll }, ref) => {
   return (
     <div ref={containerRef} className="mt-4">
       <div className="flex items-center justify-between mb-2">
-        <h2 className="text-lg font-semibold text-gray-800">
+        <h2 className="text-lg font-semibold text-gray-200">
           Recents
-          <span className="ml-2 text-sm text-gray-600">({recents.length})</span>
+          <span className="ml-2 text-sm text-gray-400">({recents.length})</span>
         </h2>
         <div className="flex gap-2">
           {expanded && recents.length > 0 && (
@@ -44,14 +44,14 @@ const Recents = forwardRef(({ recents, onLoad, onDelete, onClearAll }, ref) => {
                   onClearAll();
                 }
               }}
-              className="text-red-500 text-xs hover:text-red-600"
+              className="text-red-400 text-xs hover:text-red-300"
             >
               Clear All
             </button>
           )}
           <button
             onClick={() => setExpanded(!expanded)}
-            className="text-blue-500 text-sm hover:text-blue-600"
+            className="text-blue-400 text-sm hover:text-blue-300"
           >
             {expanded ? 'Hide' : 'Show'}
           </button>
@@ -64,7 +64,7 @@ const Recents = forwardRef(({ recents, onLoad, onDelete, onClearAll }, ref) => {
             <div
               key={recent.id}
               onClick={() => onLoad(recent)}
-              className="p-3 bg-white border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-all cursor-pointer"
+              className="p-3 bg-white/5 border border-white/10 rounded-lg hover:border-blue-400/50 hover:bg-white/10 transition-all cursor-pointer"
             >
               <div className="flex items-center gap-3">
                 <div className="flex-1 min-w-0">
@@ -74,21 +74,21 @@ const Recents = forwardRef(({ recents, onLoad, onDelete, onClearAll }, ref) => {
                   {recent.type === 'location' ? (
                     <>
                       {recent.name && (
-                        <p className="text-sm font-medium text-gray-900 truncate">
+                        <p className="text-sm font-medium text-gray-200 truncate">
                           {recent.name}
                         </p>
                       )}
-                      <p className="text-xs text-gray-600 truncate" title={recent.address}>
+                      <p className="text-xs text-gray-400 truncate" title={recent.address}>
                         {recent.address}
                       </p>
                     </>
                   ) : (
                     <>
-                      <p className="text-xs text-gray-600 mt-1 truncate" title={recent.originAddress}>
-                        <span className="font-semibold">From:</span> {recent.originAddress}
+                      <p className="text-xs text-gray-400 mt-1 truncate" title={recent.originAddress}>
+                        <span className="font-semibold text-gray-300">From:</span> {recent.originAddress}
                       </p>
-                      <p className="text-xs text-gray-600 truncate" title={recent.destinationAddress}>
-                        <span className="font-semibold">To:</span> {recent.destinationAddress}
+                      <p className="text-xs text-gray-400 truncate" title={recent.destinationAddress}>
+                        <span className="font-semibold text-gray-300">To:</span> {recent.destinationAddress}
                       </p>
                     </>
                   )}
@@ -98,7 +98,7 @@ const Recents = forwardRef(({ recents, onLoad, onDelete, onClearAll }, ref) => {
                     e.stopPropagation();
                     onDelete(recent.id);
                   }}
-                  className="flex-shrink-0 text-gray-400 hover:text-red-500 transition-colors"
+                  className="flex-shrink-0 text-gray-500 hover:text-red-400 transition-colors"
                   title="Delete"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

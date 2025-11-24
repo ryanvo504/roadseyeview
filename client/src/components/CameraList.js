@@ -20,13 +20,13 @@ const CameraList = forwardRef(({ cameras, onCameraSelect, selectedCamera, showAl
   return (
     <div ref={containerRef} className="mt-4">
       <div className="flex items-center justify-between mb-2">
-        <h2 className="text-lg font-semibold text-gray-800">
+        <h2 className="text-lg font-semibold text-gray-200">
           {showAll ? 'All Cameras' : 'Cameras Along Route'}
-          <span className="ml-2 text-sm text-gray-600">({filteredCameras.length})</span>
+          <span className="ml-2 text-sm text-gray-400">({filteredCameras.length})</span>
         </h2>
         <button
           onClick={() => setShowList(!showList)}
-          className="text-blue-500 text-sm hover:text-blue-600"
+          className="text-blue-400 text-sm hover:text-blue-300"
         >
           {showList ? 'Hide' : 'Show'}
         </button>
@@ -39,7 +39,7 @@ const CameraList = forwardRef(({ cameras, onCameraSelect, selectedCamera, showAl
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search cameras..."
-            className="w-full px-3 py-2 border border-gray-300 rounded-md mb-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+            className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-md mb-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm text-gray-200 placeholder-gray-500"
           />
 
           <label className="flex items-center gap-2 mb-3 cursor-pointer">
@@ -47,11 +47,11 @@ const CameraList = forwardRef(({ cameras, onCameraSelect, selectedCamera, showAl
               type="checkbox"
               checked={showStreamsOnly}
               onChange={(e) => onShowStreamsOnlyChange(e.target.checked)}
-              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
+              className="w-4 h-4 text-blue-500 bg-white/10 border-white/20 rounded focus:ring-blue-500 cursor-pointer"
             />
-            <span className="text-sm text-gray-700">
+            <span className="text-sm text-gray-300">
               Show video streams only
-              <svg className="w-4 h-4 inline ml-1 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+              <svg className="w-4 h-4 inline ml-1 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z" />
               </svg>
             </span>
@@ -69,8 +69,8 @@ const CameraList = forwardRef(({ cameras, onCameraSelect, selectedCamera, showAl
                   onClick={() => onCameraSelect(camera)}
                   className={`p-3 rounded-lg border cursor-pointer transition-all ${
                     selectedCamera?.id === camera.id
-                      ? 'border-blue-500 bg-blue-50'
-                      : 'border-gray-200 bg-white hover:border-blue-300 hover:bg-gray-50'
+                      ? 'border-blue-500 bg-blue-500/20'
+                      : 'border-white/10 bg-white/5 hover:border-blue-400/50 hover:bg-white/10'
                   }`}
                 >
                   <div className="flex items-start gap-2">
@@ -85,10 +85,10 @@ const CameraList = forwardRef(({ cameras, onCameraSelect, selectedCamera, showAl
                       />
                     )}
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm text-gray-900 truncate">
+                      <p className="font-medium text-sm text-gray-200 truncate">
                         {camera.name}
                       </p>
-                      <p className="text-xs text-gray-600 mt-1">
+                      <p className="text-xs text-gray-400 mt-1">
                         {camera.route} - {camera.direction}
                       </p>
                       {camera.nearbyPlace && (
@@ -97,7 +97,7 @@ const CameraList = forwardRef(({ cameras, onCameraSelect, selectedCamera, showAl
                         </p>
                       )}
                       {!camera.streamUrl && (
-                        <p className="text-xs text-orange-600 mt-1">
+                        <p className="text-xs text-orange-400 mt-1">
                           (Image only - no stream)
                         </p>
                       )}

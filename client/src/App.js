@@ -10,6 +10,7 @@ import CameraList from './components/CameraList';
 import Favorites from './components/Favorites';
 import Recents from './components/Recents';
 import MapSearch from './components/MapSearch';
+import LoadingScreen from './components/LoadingScreen';
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -62,6 +63,7 @@ function App() {
   const [route, setRoute] = useState(null);
   const [selectedCamera, setSelectedCamera] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [favorites, setFavorites] = useState([]);
   const [recents, setRecents] = useState([]);
   const [mapCenter, setMapCenter] = useState([36.7783, -119.4179]); // California center
@@ -100,8 +102,14 @@ function App() {
     try {
       const response = await axios.get(`${API_BASE_URL}/cameras`);
       setCameras(response.data);
+      // Only hide loading screen if we got cameras
+      if (response.data && response.data.length > 0) {
+        setInitialLoading(false);
+      }
     } catch (error) {
       console.error('Error fetching cameras:', error);
+      // Retry after 3 seconds if fetch fails (handles cold start)
+      setTimeout(fetchCameras, 3000);
     }
   };
 
@@ -381,32 +389,37 @@ function App() {
     setCurrentRouteInfo(null);
   };
 
+  // Show loading screen while cameras are loading (handles Render cold start)
+  if (initialLoading) {
+    return <LoadingScreen />;
+  }
+
   return (
     <div className="flex h-screen">
       {/* Sidebar */}
-      <div className={`bg-white shadow-lg overflow-y-auto transition-all duration-300 ${sidebarCollapsed ? 'w-16' : 'w-96'}`}>
+      <div className={`bg-black/90 backdrop-blur-xl border-r border-white/10 shadow-2xl overflow-y-auto transition-all duration-300 ${sidebarCollapsed ? 'w-16' : 'w-96'}`}>
         {sidebarCollapsed ? (
           /* Collapsed - Icon View */
           <div className="flex flex-col items-center py-4 gap-4">
             <button
               onClick={() => setSidebarCollapsed(false)}
-              className="p-3 hover:bg-gray-100 rounded-lg transition-colors group"
+              className="p-3 hover:bg-white/10 rounded-lg transition-colors group"
               title="Expand sidebar"
             >
-              <svg className="w-6 h-6 text-gray-600 group-hover:text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-6 h-6 text-gray-400 group-hover:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
             </button>
 
-            <div className="w-full border-t border-gray-200"></div>
+            <div className="w-full border-t border-white/10"></div>
 
             {recents.length > 0 && (
               <button
                 onClick={() => expandAndScrollTo(recentsRef, true)}
-                className="p-3 hover:bg-blue-50 rounded-lg transition-colors group relative"
+                className="p-3 hover:bg-white/10 rounded-lg transition-colors group relative"
                 title={`${recents.length} Recents`}
               >
-                <svg className="w-6 h-6 text-gray-600 group-hover:text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-6 h-6 text-gray-400 group-hover:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 <span className="absolute -top-1 -right-1 bg-purple-500 text-white text-xs rounded-full min-w-[20px] h-5 px-1 flex items-center justify-center">
@@ -418,10 +431,10 @@ function App() {
             {favorites.length > 0 && (
               <button
                 onClick={() => expandAndScrollTo(favoritesRef, true)}
-                className="p-3 hover:bg-blue-50 rounded-lg transition-colors group relative"
+                className="p-3 hover:bg-white/10 rounded-lg transition-colors group relative"
                 title={`${favorites.length} Favorites`}
               >
-                <svg className="w-6 h-6 text-gray-600 group-hover:text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-6 h-6 text-gray-400 group-hover:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
                 </svg>
                 <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs rounded-full min-w-[20px] h-5 px-1 flex items-center justify-center">
@@ -432,14 +445,14 @@ function App() {
 
             <button
               onClick={() => expandAndScrollTo(camerasRef, true)}
-              className="p-3 hover:bg-blue-50 rounded-lg transition-colors group relative"
+              className="p-3 hover:bg-white/10 rounded-lg transition-colors group relative"
               title={`${(route ? filteredRouteCameras : filteredCameras).length} Cameras`}
             >
-              <svg className="w-6 h-6 text-gray-600 group-hover:text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-6 h-6 text-gray-400 group-hover:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
               </svg>
               {(route ? filteredRouteCameras : filteredCameras).length > 0 && (
-                <span className="absolute -top-1 -right-1 bg-gray-500 text-white text-xs rounded-full min-w-[20px] h-5 px-1 flex items-center justify-center font-semibold">
+                <span className="absolute -top-1 -right-1 bg-slate-600 text-white text-xs rounded-full min-w-[20px] h-5 px-1 flex items-center justify-center font-semibold">
                   {(route ? filteredRouteCameras : filteredCameras).length}
                 </span>
               )}
@@ -449,13 +462,13 @@ function App() {
           /* Expanded - Full View */
           <div className="p-4">
             <div className="flex items-center justify-between">
-              <img src="/logo.png" alt="Roads Eye View" className="h-32 object-fill" />
+              <img src="/logo.png" alt="Roads Eye View" className="h-32 object-fill brightness-0 invert" />
               <button
                 onClick={() => setSidebarCollapsed(true)}
-                className="p-1 hover:bg-gray-100 rounded transition-colors"
+                className="p-1 hover:bg-white/10 rounded transition-colors"
                 title="Collapse sidebar"
               >
-                <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
               </button>
