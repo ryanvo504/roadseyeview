@@ -10,6 +10,7 @@ import CameraList from './components/CameraList';
 import Favorites from './components/Favorites';
 import Recents from './components/Recents';
 import MapSearch from './components/MapSearch';
+import LoadingScreen from './components/LoadingScreen';
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -62,6 +63,7 @@ function App() {
   const [route, setRoute] = useState(null);
   const [selectedCamera, setSelectedCamera] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [favorites, setFavorites] = useState([]);
   const [recents, setRecents] = useState([]);
   const [mapCenter, setMapCenter] = useState([36.7783, -119.4179]); // California center
@@ -100,8 +102,14 @@ function App() {
     try {
       const response = await axios.get(`${API_BASE_URL}/cameras`);
       setCameras(response.data);
+      // Only hide loading screen if we got cameras
+      if (response.data && response.data.length > 0) {
+        setInitialLoading(false);
+      }
     } catch (error) {
       console.error('Error fetching cameras:', error);
+      // Retry after 3 seconds if fetch fails (handles cold start)
+      setTimeout(fetchCameras, 3000);
     }
   };
 
@@ -380,6 +388,11 @@ function App() {
     setRouteCameras([]);
     setCurrentRouteInfo(null);
   };
+
+  // Show loading screen while cameras are loading (handles Render cold start)
+  if (initialLoading) {
+    return <LoadingScreen />;
+  }
 
   return (
     <div className="flex h-screen">
