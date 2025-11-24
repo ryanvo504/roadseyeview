@@ -70,7 +70,7 @@ function App() {
   const [currentRouteInfo, setCurrentRouteInfo] = useState(null); // Store current route origin/destination
   const [loadedRouteAddresses, setLoadedRouteAddresses] = useState(null); // Store addresses when loading from favorites/recents
   const [loadedLocation, setLoadedLocation] = useState(null); // Store location when loading from favorites/recents
-  const [showStreamsOnly, setShowStreamsOnly] = useState(false); // Filter to show only cameras with video streams
+  const [showStreamsOnly, setShowStreamsOnly] = useState(true); // Filter to show only cameras with video streams
   const favoritesRef = useRef(null);
   const recentsRef = useRef(null);
   const camerasRef = useRef(null);
