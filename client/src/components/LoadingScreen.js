@@ -233,6 +233,9 @@ const LoadingScreen = () => {
           <div className="w-64 h-1 bg-gray-800 rounded-full mt-4 overflow-hidden mx-auto border border-gray-700">
             <div className="h-full bg-white animate-loading-bar w-1/2 rounded-full shadow-[0_0_15px_rgba(255,255,255,0.8)]"></div>
           </div>
+          <h2 className="text-2xl font-bold tracking-[0.3em] text-white uppercase mt-4" style={{ textShadow: '0 0 20px rgba(255, 255, 255, 0.5)' }}>
+            loading camera feeds
+          </h2>
         </div>
       </div>
 
