@@ -31,6 +31,7 @@ const LoadingScreen = () => {
 
     setLoadingText("Calibrating Grid...");
     const THREE = window.THREE;
+    const currentMount = mountRef.current; // Capture ref value for cleanup
 
     // Setup
     const scene = new THREE.Scene();
@@ -42,7 +43,7 @@ const LoadingScreen = () => {
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    mountRef.current.appendChild(renderer.domElement);
+    currentMount.appendChild(renderer.domElement);
 
     // Main Group
     const mainGroup = new THREE.Group();
@@ -186,8 +187,8 @@ const LoadingScreen = () => {
     return () => {
       cancelAnimationFrame(frameId);
       window.removeEventListener('resize', handleResize);
-      if (mountRef.current && renderer.domElement) {
-        mountRef.current.removeChild(renderer.domElement);
+      if (currentMount && renderer.domElement) {
+        currentMount.removeChild(renderer.domElement);
       }
       renderer.dispose();
       wireGeo.dispose();
@@ -196,6 +197,7 @@ const LoadingScreen = () => {
       ringGeo2.dispose();
       spriteMaterial.dispose();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isThreeLoaded]);
 
   // Helper to generate a simple radial gradient texture for glow

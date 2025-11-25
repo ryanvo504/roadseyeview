@@ -11,6 +11,7 @@ import Favorites from './components/Favorites';
 import Recents from './components/Recents';
 import MapSearch from './components/MapSearch';
 import LoadingScreen from './components/LoadingScreen';
+import { Analytics } from "@vercel/analytics/react"
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -62,11 +63,11 @@ function App() {
   const [routeCameras, setRouteCameras] = useState([]);
   const [route, setRoute] = useState(null);
   const [selectedCamera, setSelectedCamera] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const [favorites, setFavorites] = useState([]);
   const [recents, setRecents] = useState([]);
-  const [mapCenter, setMapCenter] = useState([36.7783, -119.4179]); // California center
+  const mapCenter = [36.7783, -119.4179]; // California center
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [searchedLocation, setSearchedLocation] = useState(null);
   const [currentRouteInfo, setCurrentRouteInfo] = useState(null); // Store current route origin/destination
@@ -93,11 +94,7 @@ function App() {
     }
   }, []);
 
-  // Fetch all cameras on mount
-  useEffect(() => {
-    fetchCameras();
-  }, []);
-
+  // Fetch cameras function
   const fetchCameras = async () => {
     try {
       const response = await axios.get(`${API_BASE_URL}/cameras`);
@@ -112,6 +109,12 @@ function App() {
       setTimeout(fetchCameras, 3000);
     }
   };
+
+  // Fetch all cameras on mount
+  useEffect(() => {
+    fetchCameras();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Filter cameras based on showStreamsOnly
   const filteredCameras = useMemo(() => {
@@ -628,6 +631,9 @@ function App() {
           />
         )}
       </div>
+
+      {/* Vercel Analytics */}
+      <Analytics />
     </div>
   );
 }
